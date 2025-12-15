@@ -1,0 +1,18 @@
+PADWORLD ASSET DIRECTORY
+========================
+
+Place your custom images/videos here to override the default cloud streams.
+
+1. HERO SECTION (Intro)
+   - hero.mp4        (Main background video - 1080p recommended)
+   - hero_poster.jpg (Static fallback image while video loads)
+
+2. SECTION DIVIDERS (Parallax Images)
+   - divider_1.jpg   (Neural Link Section)
+   - divider_2.jpg   (Global Grid Section)
+   - divider_3.jpg   (The Network Section)
+
+SYSTEM LOGIC:
+The application automatically checks this folder. 
+If a local file is found (e.g., hero.mp4), it is loaded immediately.
+If not, the system streams the default futuristic assets from the cloud.

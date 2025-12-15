@@ -10,18 +10,85 @@ import Timeline from './components/Timeline';
 import MatchReport from './components/MatchReport';
 import SocialGraph from './components/SocialGraph';
 import FinalCta from './components/FinalCta';
+import Nav from './components/Nav';
+import Footer from './components/Footer';
+import ImageDivider from './components/ImageDivider';
 import { Activity, Wifi, Cpu, Battery, Disc } from 'lucide-react';
+import { speakText } from './services/geminiService';
 
 const SECTIONS = [
-  { id: 'intro', label: 'SYS_INIT', duration: 4000 },
-  { id: 'passport', label: 'PASSPORT', duration: 9000 },
-  { id: 'matchmaker', label: 'MATCH_SIM', duration: 10000 },
-  { id: 'ranking', label: 'GLOBAL_RANK', duration: 6000 },
-  { id: 'coaching', label: 'AI_COACH', duration: 8000 },
-  { id: 'timeline', label: 'TIMELINE', duration: 7000 },
-  { id: 'report', label: 'MATCH_LOG', duration: 7000 },
-  { id: 'social', label: 'NETWORK', duration: 5000 },
-  { id: 'final', label: 'EXIT', duration: 0 },
+  { 
+    id: 'intro', 
+    label: 'SYS_INIT', 
+    duration: 5000,
+    script: "Welcome to PadChat. Initializing the world's most advanced padel intelligence layer."
+  },
+  { 
+    id: 'passport', 
+    label: 'PASSPORT', 
+    duration: 9000, 
+    script: "Constructing your digital athlete identity. Analyzing biometrics, playstyle, and skill tier."
+  },
+  { 
+    id: 'divider1', 
+    label: 'NEURAL_LINK', 
+    duration: 4000,
+    script: "Entering the Arena. Where data dictates destiny."
+  },
+  { 
+    id: 'matchmaker', 
+    label: 'MATCH_SIM', 
+    duration: 10000,
+    script: "Initiating Match Simulation. Processing forty-eight proprietary data points to predict outcome and compatibility."
+  },
+  { 
+    id: 'ranking', 
+    label: 'GLOBAL_RANK', 
+    duration: 7000,
+    script: "Global ranking engine active. Your position is dynamic, updating in real-time against the world."
+  },
+  { 
+    id: 'divider2', 
+    label: 'SYNC_GRID', 
+    duration: 4000,
+    script: "Breaking limits. AI driven performance evolution."
+  },
+  { 
+    id: 'coaching', 
+    label: 'AI_COACH', 
+    duration: 9000,
+    script: "Live Coaching Mode active. Biomechanical analysis detecting patterns and suggesting immediate improvements."
+  },
+  { 
+    id: 'timeline', 
+    label: 'TIMELINE', 
+    duration: 7000,
+    script: "Projecting future performance trajectory. Calculating optimal path to the elite tier."
+  },
+  { 
+    id: 'report', 
+    label: 'MATCH_LOG', 
+    duration: 8000,
+    script: "Match report generated. Analyzing winning zones and rally intensity."
+  },
+  { 
+    id: 'divider3', 
+    label: 'NETWORK', 
+    duration: 4000,
+    script: "Global Nexus. Uniting the ecosystem."
+  },
+  { 
+    id: 'social', 
+    label: 'SOCIAL_GRAPH', 
+    duration: 6000,
+    script: "Connecting the grid. PadChat is not just data, it is a living network of athletes."
+  },
+  { 
+    id: 'final', 
+    label: 'EXIT', 
+    duration: 0,
+    script: "PadChat. The intelligence layer behind global padel."
+  },
 ];
 
 const App: React.FC = () => {
@@ -30,7 +97,10 @@ const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('intro');
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [autoPlayIndex, setAutoPlayIndex] = useState<number>(-1);
+  const [isMuted, setIsMuted] = useState(false); // Default unmuted for demo
+  
   const isAutoMode = autoPlayIndex !== -1;
+  const currentSectionIndex = SECTIONS.findIndex(s => s.id === activeSection) + 1;
 
   // Custom Cursor Logic
   useEffect(() => {
@@ -63,7 +133,7 @@ const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [showContent, isAutoMode]);
 
-  // Autonomous Sequencer
+  // Autonomous Sequencer with TTS
   useEffect(() => {
       if (autoPlayIndex >= 0 && autoPlayIndex < SECTIONS.length) {
           const section = SECTIONS[autoPlayIndex];
@@ -74,20 +144,49 @@ const App: React.FC = () => {
               el.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
 
-          if (section.duration > 0) {
-              const timer = setTimeout(() => {
-                  setAutoPlayIndex(prev => prev + 1);
-              }, section.duration);
-              return () => clearTimeout(timer);
+          const advance = () => {
+             setAutoPlayIndex(prev => prev + 1);
+          };
+
+          // If muted or script missing, use duration
+          if (isMuted || !section.script) {
+              if (section.duration > 0) {
+                  const timer = setTimeout(advance, section.duration);
+                  return () => clearTimeout(timer);
+              } else {
+                  setTimeout(() => setAutoPlayIndex(-1), 5000);
+              }
           } else {
-              // End of sequence
-              setTimeout(() => setAutoPlayIndex(-1), 5000);
+              // Play TTS then advance
+              // Add a small delay before speaking so the scroll settles
+              const delayTimer = setTimeout(() => {
+                   speakText(section.script!).then(() => {
+                       // Small buffer after speech before moving on
+                       setTimeout(advance, 1000);
+                   });
+              }, 1000);
+              
+              // Safety fallback in case TTS hangs
+              const safetyTimer = setTimeout(advance, Math.max(section.duration + 5000, 15000));
+              
+              return () => {
+                  clearTimeout(delayTimer);
+                  clearTimeout(safetyTimer);
+              };
           }
+      } else if (autoPlayIndex >= SECTIONS.length) {
+          // End of sequence
+          setAutoPlayIndex(-1);
       }
-  }, [autoPlayIndex]);
+  }, [autoPlayIndex, isMuted]);
 
   const startAutonomousMode = () => {
+      setIsMuted(false); // Unmute for full experience
       setAutoPlayIndex(0); // Starts at Intro
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
   };
 
   if (!isAuthenticated) {
@@ -116,23 +215,18 @@ const App: React.FC = () => {
         style={{ left: mousePos.x - 4, top: mousePos.y - 4 }}
       ></div>
 
-      {/* 3. IMMERSIVE HUD OVERLAY */}
-      <div className="fixed inset-0 pointer-events-none z-40 p-6 flex flex-col justify-between">
-          {/* Top Bar */}
-          <div className="flex justify-between items-start opacity-70">
-              <div className="flex flex-col gap-1">
-                  <div className="text-[10px] font-mono text-acid tracking-widest flex items-center gap-2">
-                      <Disc className="animate-spin" size={10} /> PADCHAT_OS v3.1 {isAutoMode && <span className="text-white animate-pulse bg-red-500/50 px-2 rounded">AUTO_PILOT_ENGAGED</span>}
-                  </div>
-                  <div className="text-[9px] font-mono text-gray-500">SECURE CONNECTION</div>
-              </div>
-              <div className="flex gap-6 text-[10px] font-mono text-gray-500">
-                  <span className="flex items-center gap-2"><Cpu size={12}/> CPU: 12%</span>
-                  <span className="flex items-center gap-2"><Wifi size={12}/> NET: 1.2Gbps</span>
-                  <span className="flex items-center gap-2"><Battery size={12}/> PWR: STABLE</span>
-              </div>
-          </div>
+      {/* 3. NEW NAV & FOOTER */}
+      <Nav 
+        isMuted={isMuted} 
+        toggleMute={toggleMute} 
+        onStartAuto={startAutonomousMode} 
+        isAutoMode={isAutoMode} 
+      />
+      <Footer current={currentSectionIndex > 0 ? currentSectionIndex : 1} total={SECTIONS.length} />
 
+      {/* 4. IMMERSIVE HUD OVERLAY (SIDE ELEMENTS ONLY) */}
+      <div className="fixed inset-0 pointer-events-none z-40 p-6 flex flex-col justify-between">
+          
           {/* Left Side: Section Progress */}
           <div className="absolute left-6 top-1/2 -translate-y-1/2 hidden md:flex flex-col gap-4">
                <div className="w-[1px] h-32 bg-gradient-to-b from-transparent via-white/20 to-transparent absolute left-[5px] top-0 bottom-0 m-auto"></div>
@@ -154,29 +248,65 @@ const App: React.FC = () => {
                   ))}
               </div>
           </div>
-
-          {/* Bottom Bar */}
-          <div className="flex justify-between items-end opacity-70">
-              <div className="text-[9px] font-mono text-gray-600">
-                  LAT: 34.0522 N / LON: 118.2437 W
-              </div>
-              <div className="text-[9px] font-mono text-acid animate-pulse">
-                  SYSTEM STATUS: ONLINE
-              </div>
-          </div>
       </div>
 
-      {/* 4. MAIN SCROLL CONTENT */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-0 pb-20">
-        <SectionWrapper id="intro"><IntroSection onStartAuto={startAutonomousMode} /></SectionWrapper>
-        <SectionWrapper id="passport"><PlayerPassport autoPlay={isAutoMode && activeSection === 'passport'} /></SectionWrapper>
-        <SectionWrapper id="matchmaker"><Matchmaker autoPlay={isAutoMode && activeSection === 'matchmaker'} /></SectionWrapper>
-        <SectionWrapper id="ranking"><RankingGlobe autoPlay={isAutoMode && activeSection === 'ranking'} /></SectionWrapper>
-        <SectionWrapper id="coaching"><CoachingMode autoPlay={isAutoMode && activeSection === 'coaching'} /></SectionWrapper>
-        <SectionWrapper id="timeline"><Timeline autoPlay={isAutoMode && activeSection === 'timeline'} /></SectionWrapper>
-        <SectionWrapper id="report"><MatchReport autoPlay={isAutoMode && activeSection === 'report'} /></SectionWrapper>
-        <SectionWrapper id="social"><SocialGraph /></SectionWrapper>
-        <SectionWrapper id="final"><FinalCta /></SectionWrapper>
+      {/* 5. MAIN SCROLL CONTENT WITH DIVIDERS */}
+      <div className="relative z-10 max-w-full mx-auto space-y-0 pb-20">
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <SectionWrapper id="intro"><IntroSection /></SectionWrapper>
+            <SectionWrapper id="passport"><PlayerPassport autoPlay={isAutoMode && activeSection === 'passport'} /></SectionWrapper>
+        </div>
+
+        {/* DIVIDER 1: Identity -> Matchmaking */}
+        <div id="divider1">
+            <ImageDivider 
+                imgSrc="/assets/divider_1.jpg" 
+                fallbackSrc="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop" 
+                title="THE ARENA"
+                subtitle="WHERE DATA DICTATES DESTINY"
+                align="center"
+            />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <SectionWrapper id="matchmaker"><Matchmaker autoPlay={isAutoMode && activeSection === 'matchmaker'} /></SectionWrapper>
+            <SectionWrapper id="ranking"><RankingGlobe autoPlay={isAutoMode && activeSection === 'ranking'} /></SectionWrapper>
+        </div>
+
+        {/* DIVIDER 2: Ranking -> Coaching/Evolution */}
+        <div id="divider2">
+             <ImageDivider 
+                imgSrc="/assets/divider_2.jpg" 
+                fallbackSrc="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=2070&auto=format&fit=crop" 
+                title="BREAK LIMITS"
+                subtitle="AI-DRIVEN PERFORMANCE EVOLUTION"
+                align="left"
+            />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <SectionWrapper id="coaching"><CoachingMode autoPlay={isAutoMode && activeSection === 'coaching'} /></SectionWrapper>
+            <SectionWrapper id="timeline"><Timeline autoPlay={isAutoMode && activeSection === 'timeline'} /></SectionWrapper>
+            <SectionWrapper id="report"><MatchReport autoPlay={isAutoMode && activeSection === 'report'} /></SectionWrapper>
+        </div>
+
+        {/* DIVIDER 3: Reports -> Social/Global */}
+        <div id="divider3">
+             <ImageDivider 
+                imgSrc="/assets/divider_3.jpg" 
+                fallbackSrc="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop" 
+                title="GLOBAL NEXUS"
+                subtitle="UNITING THE WORLD'S SMARTEST ECOSYSTEM"
+                align="right"
+            />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <SectionWrapper id="social"><SocialGraph /></SectionWrapper>
+            <SectionWrapper id="final"><FinalCta /></SectionWrapper>
+        </div>
+
       </div>
 
     </div>

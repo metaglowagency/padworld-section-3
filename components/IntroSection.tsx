@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Activity, Cpu, Database, Zap, ChevronDown, PlayCircle } from 'lucide-react';
 
 interface IntroSectionProps {
-    onStartAuto: () => void;
+    // onStartAuto prop removed as it moved to Nav
 }
 
 const ScrambleText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
@@ -33,8 +33,21 @@ const ScrambleText: React.FC<{ text: string; className?: string }> = ({ text, cl
   return <span className={className}>{display}</span>;
 };
 
-const IntroSection: React.FC<IntroSectionProps> = ({ onStartAuto }) => {
+const IntroSection: React.FC<IntroSectionProps> = () => {
   const [visible, setVisible] = useState(false);
+  
+  // Asset Routing Logic
+  const localPoster = '/assets/hero_poster.jpg';
+  const remotePoster = 'https://images.unsplash.com/photo-1626245648836-2396e95f5022?q=80&w=1920&auto=format&fit=crop';
+  const [activePoster, setActivePoster] = useState(remotePoster);
+
+  useEffect(() => {
+    // Check if local poster exists
+    const img = new Image();
+    img.src = localPoster;
+    img.onload = () => setActivePoster(localPoster);
+    // On error, it stays as remotePoster
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), 500);
@@ -53,14 +66,19 @@ const IntroSection: React.FC<IntroSectionProps> = ({ onStartAuto }) => {
         <div className="absolute inset-0 bg-gradient-to-t from-void via-void/50 to-void/30 z-20"></div>
         <div className="absolute inset-0 bg-black/60 z-10"></div>
         <div className="absolute inset-0 z-20 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px]"></div>
+        
         <video 
             autoPlay 
             loop 
             muted 
             playsInline
-            poster="https://images.unsplash.com/photo-1626245648836-2396e95f5022?q=80&w=1920&auto=format&fit=crop"
+            poster={activePoster}
             className="w-full h-full object-cover scale-110 animate-slow-zoom opacity-60 grayscale-[0.8] contrast-125 brightness-75 sepia-[0.3] hue-rotate-[170deg]"
         >
+            {/* PRIORITY 1: LOCAL ASSET */}
+            <source src="/assets/hero.mp4" type="video/mp4" />
+            
+            {/* PRIORITY 2: REMOTE FALLBACKS */}
             <source src="https://videos.pexels.com/video-files/4754033/4754033-hd_1920_1080_25fps.mp4" type="video/mp4" />
             <source src="https://videos.pexels.com/video-files/5738860/5738860-hd_1920_1080_24fps.mp4" type="video/mp4" />
         </video>
@@ -107,15 +125,13 @@ const IntroSection: React.FC<IntroSectionProps> = ({ onStartAuto }) => {
                     <div className="w-1 h-2 bg-white rounded-full animate-bounce"></div>
                 </div>
             </button>
-            
-            <button
-                onClick={onStartAuto}
-                className="group flex items-center gap-3 px-8 py-4 bg-acid/10 border border-acid/50 hover:bg-acid hover:text-black transition-all rounded-full backdrop-blur-md"
-            >
-                <PlayCircle className="group-hover:scale-110 transition-transform" size={20} />
-                <span className="text-xs font-mono font-bold tracking-widest uppercase">Start Autonomous Demo</span>
-            </button>
         </div>
+      </div>
+      
+      {/* Technical Footer for Hero */}
+      <div className="absolute bottom-6 right-6 flex flex-col items-end z-30 opacity-50">
+          <div className="text-[9px] font-mono text-gray-400">VIDEO_SOURCE: {activePoster === localPoster ? 'LOCAL_STORAGE' : 'CLOUD_STREAM'}</div>
+          <div className="text-[9px] font-mono text-gray-400">RENDER: 60FPS</div>
       </div>
     </section>
   );
