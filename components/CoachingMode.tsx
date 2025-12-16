@@ -9,6 +9,14 @@ interface CoachingModeProps {
 const CoachingMode: React.FC<CoachingModeProps> = ({ autoPlay }) => {
     const [advice, setAdvice] = useState<string>("Scanning playstyle...");
     const [analyzing, setAnalyzing] = useState(false);
+    const [bgSrc, setBgSrc] = useState('https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=2669&auto=format&fit=crop'); // Default Court Image
+
+    useEffect(() => {
+        // Asset Routing: Check for local background override
+        const img = new Image();
+        img.src = '/assets/coaching_bg.jpg';
+        img.onload = () => setBgSrc('/assets/coaching_bg.jpg');
+    }, []);
 
     useEffect(() => {
         if (autoPlay && !analyzing && advice === "Scanning playstyle...") {
@@ -41,7 +49,11 @@ const CoachingMode: React.FC<CoachingModeProps> = ({ autoPlay }) => {
 
             <div className="grid md:grid-cols-12 gap-6 h-[600px]">
                 <div className="md:col-span-8 bg-black border-2 border-white/10 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-[url('https://picsum.photos/800/600?grayscale')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
+                    {/* Background Image with Asset Routing */}
+                    <div 
+                        className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity transition-all duration-1000 group-hover:scale-105"
+                        style={{ backgroundImage: `url(${bgSrc})` }}
+                    ></div>
                     
                     <div className="absolute inset-0 p-6 flex flex-col justify-between z-10">
                          <div className="flex justify-between items-start">

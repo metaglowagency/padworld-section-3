@@ -9,6 +9,7 @@ import CoachingMode from './components/CoachingMode';
 import Timeline from './components/Timeline';
 import MatchReport from './components/MatchReport';
 import SocialGraph from './components/SocialGraph';
+import PrincipleSection from './components/PrincipleSection'; // New Import
 import FinalCta from './components/FinalCta';
 import Nav from './components/Nav';
 import Footer from './components/Footer';
@@ -82,6 +83,18 @@ const SECTIONS = [
     label: 'SOCIAL_GRAPH', 
     duration: 6000,
     script: "Connecting the grid. PadChat is not just data, it is a living network of athletes."
+  },
+  {
+    id: 'divider4',
+    label: 'ETHOS',
+    duration: 4000,
+    script: "The Code. Democratization by Data."
+  },
+  {
+    id: 'principle',
+    label: 'THE_CODE',
+    duration: 12000,
+    script: "No politics. No bias. Just the game. Every ranking earned, not given. The game talks."
   },
   { 
     id: 'final', 
@@ -304,6 +317,21 @@ const App: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <SectionWrapper id="social"><SocialGraph /></SectionWrapper>
+        </div>
+        
+        {/* DIVIDER 4: Social -> Principle */}
+        <div id="divider4">
+             <ImageDivider 
+                imgSrc="/assets/divider_4.jpg" 
+                fallbackSrc="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop" 
+                title="THE CODE"
+                subtitle="DEMOCRATIZATION BY DATA"
+                align="center"
+            />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <SectionWrapper id="principle"><PrincipleSection /></SectionWrapper>
             <SectionWrapper id="final"><FinalCta /></SectionWrapper>
         </div>
 
