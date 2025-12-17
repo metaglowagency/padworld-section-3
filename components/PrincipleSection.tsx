@@ -1,7 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Scale, ShieldCheck, Globe, Cpu, X, Check, Activity, Zap, Heart, Battery, ChevronRight, ChevronLeft, Swords, Trophy, Server, Database, ArrowDown, Wifi, ScanLine, MapPin, Target, Fingerprint, BarChart3, Lock, Hash, Share2, Dna, Layers, GitMerge, Brain } from 'lucide-react';
 
-const PrincipleSection: React.FC = () => {
+interface PrincipleSectionProps {
+    autoPlay?: boolean;
+}
+
+const PrincipleSection: React.FC<PrincipleSectionProps> = ({ autoPlay }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollLeft = () => {
@@ -35,7 +39,7 @@ const PrincipleSection: React.FC = () => {
            
            {/* NEW: GLOBAL INTELLIGENCE ENGINE */}
            <div className="w-full mt-8 mb-16">
-               <GlobalIntelligenceEngine />
+               <GlobalIntelligenceEngine autoPlay={autoPlay} />
            </div>
 
            <div className="space-y-2 animate-in zoom-in duration-1000 delay-1000 fill-mode-forwards opacity-0">
@@ -273,7 +277,7 @@ const PrincipleSection: React.FC = () => {
 };
 
 // --- NEW COMPONENT: GLOBAL INTELLIGENCE ENGINE (FUSION CORE) ---
-const GlobalIntelligenceEngine = () => {
+const GlobalIntelligenceEngine = ({ autoPlay }: { autoPlay?: boolean }) => {
     // 0: INGEST, 1: CROSS-REF, 2: CLASSIFY
     const [cycle, setCycle] = useState(0); 
     const [progress, setProgress] = useState(0);
@@ -289,6 +293,14 @@ const GlobalIntelligenceEngine = () => {
 
     const [tier, setTier] = useState("CALCULATING...");
     const [finalRank, setFinalRank] = useState(0);
+
+    // Watch for autoPlay to reset sequence
+    useEffect(() => {
+        if (autoPlay) {
+            setCycle(0);
+            setProgress(0);
+        }
+    }, [autoPlay]);
 
     useEffect(() => {
         const interval = setInterval(() => {

@@ -19,7 +19,8 @@ const Matchmaker: React.FC<MatchmakerProps> = ({ autoPlay }) => {
   const [result, setResult] = useState<any>(null);
 
   useEffect(() => {
-    if (autoPlay && !matching && !result) {
+    // If autoPlay triggers, restart simulation
+    if (autoPlay) {
         runSimulation();
     }
   }, [autoPlay]);

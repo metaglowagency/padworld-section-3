@@ -16,10 +16,13 @@
               acid: '#ACFF01',
               electric: '#2DD6FF',
               glass: 'rgba(255,255,255,0.05)',
+              'neon-lime': '#ACFF01',
+              'neon-blue': '#2DD6FF',
             },
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
               mono: ['JetBrains Mono', 'monospace'],
+              display: ['Inter', 'sans-serif'],
             },
             backgroundImage: {
               'holo-grid': "linear-gradient(rgba(172,255,1,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(172,255,1,0.03) 1px, transparent 1px)",
@@ -32,6 +35,7 @@
               'slow-zoom': 'zoom 20s ease-in-out infinite alternate',
               'draw': 'draw 2s ease-out forwards',
               'crt-on': 'turnOn 0.4s ease-out forwards',
+              'shimmer': 'shimmer 2s linear infinite',
             },
             keyframes: {
               scan: {
@@ -41,6 +45,10 @@
               radar: {
                 '0%': { transform: 'rotate(0deg)' },
                 '100%': { transform: 'rotate(360deg)' },
+              },
+              shimmer: {
+                '0%': { transform: 'translateX(-100%)' },
+                '100%': { transform: 'translateX(100%)' },
               },
               glitch: {
                 '0%': { transform: 'translate(0)' },
@@ -110,6 +118,9 @@
       .glow-text-electric {
         text-shadow: 0 0 10px rgba(45, 214, 255, 0.5);
       }
+      .glow-text-white {
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+      }
       
       /* Cinematic Noise Overlay */
       .bg-noise {
@@ -142,12 +153,6 @@
         pointer-events: none;
         z-index: 49;
       }
-      
-      /* CRT Turn Off/On helper */
-      .crt-container {
-        animation: turnOn 4s linear;
-        animation-fill-mode: forwards;
-      }
     </style>
   <script type="importmap">
 {
@@ -157,7 +162,8 @@
     "react": "https://esm.sh/react@^19.2.2",
     "react-dom/": "https://esm.sh/react-dom@^19.2.2/",
     "@google/genai": "https://esm.sh/@google/genai@^1.33.0",
-    "lucide-react": "https://esm.sh/lucide-react@^0.560.0"
+    "lucide-react": "https://esm.sh/lucide-react@^0.560.0",
+    "framer-motion": "https://esm.sh/framer-motion@^11.0.0"
   }
 }
 </script>

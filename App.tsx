@@ -9,7 +9,7 @@ import CoachingMode from './components/CoachingMode';
 import Timeline from './components/Timeline';
 import MatchReport from './components/MatchReport';
 import SocialGraph from './components/SocialGraph';
-import PrincipleSection from './components/PrincipleSection'; // New Import
+import PrincipleSection from './components/PrincipleSection';
 import FinalCta from './components/FinalCta';
 import Nav from './components/Nav';
 import Footer from './components/Footer';
@@ -27,7 +27,7 @@ const SECTIONS = [
   { 
     id: 'passport', 
     label: 'PASSPORT', 
-    duration: 9000, 
+    duration: 8000, 
     script: "Constructing your digital athlete identity. Analyzing biometrics, playstyle, and skill tier."
   },
   { 
@@ -39,13 +39,13 @@ const SECTIONS = [
   { 
     id: 'matchmaker', 
     label: 'MATCH_SIM', 
-    duration: 10000,
+    duration: 8000, // Increased for 4s sim + reading
     script: "Initiating Match Simulation. Processing forty-eight proprietary data points to predict outcome and compatibility."
   },
   { 
     id: 'ranking', 
     label: 'GLOBAL_RANK', 
-    duration: 7000,
+    duration: 6000,
     script: "Global ranking engine active. Your position is dynamic, updating in real-time against the world."
   },
   { 
@@ -57,19 +57,19 @@ const SECTIONS = [
   { 
     id: 'coaching', 
     label: 'AI_COACH', 
-    duration: 9000,
+    duration: 8000,
     script: "Live Coaching Mode active. Biomechanical analysis detecting patterns and suggesting immediate improvements."
   },
   { 
     id: 'timeline', 
     label: 'TIMELINE', 
-    duration: 7000,
+    duration: 8000, // Time for graph to draw
     script: "Projecting future performance trajectory. Calculating optimal path to the elite tier."
   },
   { 
     id: 'report', 
     label: 'MATCH_LOG', 
-    duration: 8000,
+    duration: 6000,
     script: "Match report generated. Analyzing winning zones and rally intensity."
   },
   { 
@@ -81,7 +81,7 @@ const SECTIONS = [
   { 
     id: 'social', 
     label: 'SOCIAL_GRAPH', 
-    duration: 6000,
+    duration: 7000,
     script: "Connecting the grid. PadChat is not just data, it is a living network of athletes."
   },
   {
@@ -93,7 +93,7 @@ const SECTIONS = [
   {
     id: 'principle',
     label: 'THE_CODE',
-    duration: 12000,
+    duration: 14000, // Long enough for the full data cycle (ingest -> cross-ref -> classify)
     script: "No politics. No bias. Just the game. Every ranking earned, not given. The game talks."
   },
   { 
@@ -110,7 +110,7 @@ const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('intro');
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [autoPlayIndex, setAutoPlayIndex] = useState<number>(-1);
-  const [isMuted, setIsMuted] = useState(false); // Default unmuted for demo
+  const [isMuted, setIsMuted] = useState(false);
   
   const isAutoMode = autoPlayIndex !== -1;
   const currentSectionIndex = SECTIONS.findIndex(s => s.id === activeSection) + 1;
@@ -124,7 +124,7 @@ const App: React.FC = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Scroll Spy Logic (Only active when NOT in auto mode to prevent fighting)
+  // Scroll Spy Logic (Only active when NOT in auto mode)
   useEffect(() => {
     if (!showContent || isAutoMode) return;
     
@@ -146,47 +146,48 @@ const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [showContent, isAutoMode]);
 
-  // Autonomous Sequencer with TTS
+  // Autonomous Sequencer with Strict Synchronization
   useEffect(() => {
       if (autoPlayIndex >= 0 && autoPlayIndex < SECTIONS.length) {
           const section = SECTIONS[autoPlayIndex];
-          setActiveSection(section.id); // Force update HUD
+          setActiveSection(section.id);
           
           const el = document.getElementById(section.id);
           if (el) {
+              // Scroll to center for optimal viewing
               el.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
 
-          const advance = () => {
-             setAutoPlayIndex(prev => prev + 1);
+          let isCancelled = false;
+
+          const executeSequence = async () => {
+              // 1. Initial Buffer: Allow scroll to settle before action starts
+              await new Promise(r => setTimeout(r, 1000));
+              if (isCancelled) return;
+
+              // 2. Parallel Execution: Speech + Minimum Animation Duration
+              // We wait for whichever is LONGER: The speech to finish OR the minimum duration.
+              // This ensures visually complex sections (like Matchmaker) aren't cut short by fast reading.
+              
+              const minDuration = section.duration || 3000;
+              
+              const speechTask = (!isMuted && section.script) 
+                  ? speakText(section.script).catch(() => Promise.resolve()) 
+                  : Promise.resolve();
+                  
+              const durationTask = new Promise(r => setTimeout(r, minDuration));
+
+              await Promise.all([speechTask, durationTask]);
+              
+              if (!isCancelled) {
+                  // 3. Advance to next section
+                  setAutoPlayIndex(prev => prev + 1);
+              }
           };
 
-          // If muted or script missing, use duration
-          if (isMuted || !section.script) {
-              if (section.duration > 0) {
-                  const timer = setTimeout(advance, section.duration);
-                  return () => clearTimeout(timer);
-              } else {
-                  setTimeout(() => setAutoPlayIndex(-1), 5000);
-              }
-          } else {
-              // Play TTS then advance
-              // Add a small delay before speaking so the scroll settles
-              const delayTimer = setTimeout(() => {
-                   speakText(section.script!).then(() => {
-                       // Small buffer after speech before moving on
-                       setTimeout(advance, 1000);
-                   });
-              }, 1000);
-              
-              // Safety fallback in case TTS hangs
-              const safetyTimer = setTimeout(advance, Math.max(section.duration + 5000, 15000));
-              
-              return () => {
-                  clearTimeout(delayTimer);
-                  clearTimeout(safetyTimer);
-              };
-          }
+          executeSequence();
+
+          return () => { isCancelled = true; };
       } else if (autoPlayIndex >= SECTIONS.length) {
           // End of sequence
           setAutoPlayIndex(-1);
@@ -194,8 +195,8 @@ const App: React.FC = () => {
   }, [autoPlayIndex, isMuted]);
 
   const startAutonomousMode = () => {
-      setIsMuted(false); // Unmute for full experience
-      setAutoPlayIndex(0); // Starts at Intro
+      setIsMuted(false); 
+      setAutoPlayIndex(0); 
   };
 
   const toggleMute = () => {
@@ -267,7 +268,7 @@ const App: React.FC = () => {
       <div className="relative z-10 max-w-full mx-auto space-y-0 pb-20">
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <SectionWrapper id="intro"><IntroSection /></SectionWrapper>
+            <SectionWrapper id="intro"><IntroSection autoPlay={isAutoMode && activeSection === 'intro'} /></SectionWrapper>
             <SectionWrapper id="passport"><PlayerPassport autoPlay={isAutoMode && activeSection === 'passport'} /></SectionWrapper>
         </div>
 
@@ -316,7 +317,7 @@ const App: React.FC = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <SectionWrapper id="social"><SocialGraph /></SectionWrapper>
+            <SectionWrapper id="social"><SocialGraph autoPlay={isAutoMode && activeSection === 'social'} /></SectionWrapper>
         </div>
         
         {/* DIVIDER 4: Social -> Principle */}
@@ -331,7 +332,7 @@ const App: React.FC = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <SectionWrapper id="principle"><PrincipleSection /></SectionWrapper>
+            <SectionWrapper id="principle"><PrincipleSection autoPlay={isAutoMode && activeSection === 'principle'} /></SectionWrapper>
             <SectionWrapper id="final"><FinalCta /></SectionWrapper>
         </div>
 
@@ -363,7 +364,7 @@ const InteractiveBackground = () => {
         canvas.height = height;
 
         const particles: {x: number, y: number, vx: number, vy: number}[] = [];
-        const particleCount = 40; // optimized for performance
+        const particleCount = 40; 
 
         for(let i=0; i<particleCount; i++) {
             particles.push({

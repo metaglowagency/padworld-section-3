@@ -1,9 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
-const SocialGraph: React.FC = () => {
+interface SocialGraphProps {
+    autoPlay?: boolean;
+}
+
+const SocialGraph: React.FC<SocialGraphProps> = ({ autoPlay }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
+  // Restart simulation when autoPlay is triggered
   useEffect(() => {
     if (!svgRef.current) return;
 
@@ -58,6 +63,19 @@ const SocialGraph: React.FC = () => {
             .attr("cy", (d: any) => d.y);
     });
 
+    // Flash effect on autoPlay start
+    if (autoPlay) {
+        svg.append("rect")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("fill", "#ACFF01")
+            .attr("opacity", 0.1)
+            .transition()
+            .duration(1000)
+            .attr("opacity", 0)
+            .remove();
+    }
+
     function drag(simulation: any) {
         function dragstarted(event: any) {
             if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -78,7 +96,7 @@ const SocialGraph: React.FC = () => {
             .on("drag", dragged)
             .on("end", dragended);
     }
-  }, []);
+  }, [autoPlay]);
 
   return (
     <section className="py-20 border-t border-white/10 text-center">

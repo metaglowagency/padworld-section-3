@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Activity, Cpu, Database, Zap, ChevronDown, PlayCircle } from 'lucide-react';
 
 interface IntroSectionProps {
-    // onStartAuto prop removed as it moved to Nav
+    autoPlay?: boolean;
 }
 
-const ScrambleText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
+const ScrambleText: React.FC<{ text: string; className?: string; trigger?: boolean }> = ({ text, className, trigger }) => {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
   const [display, setDisplay] = useState(() => 
     text.split('').map(() => chars[Math.floor(Math.random() * chars.length)]).join('')
@@ -28,12 +28,12 @@ const ScrambleText: React.FC<{ text: string; className?: string }> = ({ text, cl
       iteration += 1 / 3;
     }, 30);
     return () => clearInterval(interval);
-  }, [text]);
+  }, [text, trigger]);
 
   return <span className={className}>{display}</span>;
 };
 
-const IntroSection: React.FC<IntroSectionProps> = () => {
+const IntroSection: React.FC<IntroSectionProps> = ({ autoPlay }) => {
   const [visible, setVisible] = useState(false);
   
   // Asset Routing Logic
@@ -104,7 +104,7 @@ const IntroSection: React.FC<IntroSectionProps> = () => {
         <h1 className="text-6xl md:text-9xl font-black text-white tracking-tighter leading-[0.85] mb-8 drop-shadow-2xl mix-blend-overlay">
           YOUR GLOBAL<br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-300 to-gray-600">
-            {visible && <ScrambleText text="INTELLIGENCE" />}
+            {visible && <ScrambleText text="INTELLIGENCE" trigger={autoPlay} />}
           </span>
         </h1>
 
