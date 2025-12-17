@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Server, Activity, Cpu, Database } from 'lucide-react';
 import { GoogleGenAI, Modality } from "@google/genai";
@@ -38,6 +38,7 @@ const playSystemIntro = async () => {
     
     // Fallback if API fails or key is missing
     const playFallback = () => {
+        console.warn("BootSequence: Using fallback system voice.");
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = 0.9;
         utterance.pitch = 0.7; 
@@ -95,8 +96,13 @@ const playSystemIntro = async () => {
         } else {
             playFallback();
         }
-    } catch (error) {
-        console.error("TTS Error:", error);
+    } catch (error: any) {
+        // Suppress 429 quota errors from clogging console as red errors
+        if (error.status === 429 || (error.message && error.message.includes('429'))) {
+             console.warn("BootSequence: TTS Quota Exceeded (429). Switching to fallback.");
+        } else {
+             console.warn("BootSequence: TTS Error. Switching to fallback.", error);
+        }
         playFallback();
     }
 };
@@ -221,8 +227,13 @@ interface BootSequenceProps {
 
 const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
   const [progress, setProgress] = useState(0);
+  const hasRun = useRef(false);
 
   useEffect(() => {
+    // Prevent re-running if parent re-renders (due to mouse movement in App.tsx)
+    if (hasRun.current) return;
+    hasRun.current = true;
+
     // 1. Trigger the Generative Voice
     playSystemIntro();
 
@@ -245,7 +256,7 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       clearTimeout(timer);
       clearInterval(progressInterval);
     };
-  }, [onComplete]);
+  }, []); // Empty dependency array ensures this runs exactly once on mount
 
   return (
     <motion.div 

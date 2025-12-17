@@ -87,6 +87,26 @@ export const generateMatchReportSummary = async (): Promise<string> => {
 // --- TTS Implementation ---
 
 export const speakText = async (text: string): Promise<void> => {
+  // 1. Setup Browser Fallback
+  const fallback = (): Promise<void> => {
+      return new Promise((resolve) => {
+          console.warn("Using Browser TTS Fallback");
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.rate = 1.0;
+          utterance.pitch = 1.0;
+          
+          // Try to select a better voice if available
+          const voices = window.speechSynthesis.getVoices();
+          const preferred = voices.find(v => v.lang === 'en-US' && (v.name.includes('Google') || v.name.includes('Samantha')));
+          if (preferred) utterance.voice = preferred;
+
+          utterance.onend = () => resolve();
+          utterance.onerror = () => resolve(); // Resolve anyway to keep app flow moving
+          window.speechSynthesis.speak(utterance);
+      });
+  };
+
+  // 2. Setup Audio Context for Gemini
   if (!audioContext) {
     audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
   }
@@ -95,11 +115,12 @@ export const speakText = async (text: string): Promise<void> => {
   }
 
   try {
+    // 3. Attempt Gemini TTS
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-preview-tts",
       contents: [{ parts: [{ text }] }],
       config: {
-        responseModalities: ["AUDIO"], // Modality.AUDIO
+        responseModalities: ["AUDIO"],
         speechConfig: {
           voiceConfig: {
             prebuiltVoiceConfig: { voiceName: 'Kore' },
@@ -109,7 +130,7 @@ export const speakText = async (text: string): Promise<void> => {
     });
 
     const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-    if (!base64Audio) return Promise.resolve();
+    if (!base64Audio) throw new Error("No audio data returned");
 
     const audioBuffer = await decodeAudioData(
       decode(base64Audio),
@@ -127,10 +148,15 @@ export const speakText = async (text: string): Promise<void> => {
         source.onended = () => resolve();
     });
 
-  } catch (e) {
-    console.error("TTS Error", e);
-    // Resolve immediately on error to not block the demo flow
-    return Promise.resolve();
+  } catch (e: any) {
+    // 4. Handle Errors & Trigger Fallback
+    const isQuotaError = e.status === 429 || (e.message && e.message.includes('429'));
+    if (isQuotaError) {
+        console.warn("Gemini TTS Quota Exceeded (429). Switching to system voice.");
+    } else {
+        console.warn("Gemini TTS Error. Switching to system voice.", e);
+    }
+    return fallback();
   }
 };
 

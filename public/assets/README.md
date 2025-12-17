@@ -6,11 +6,11 @@ If a local file is found, it automatically overrides the default remote/cloud UR
 
 ## 📂 Directory: `public/assets/`
 
-### 1. Hero Section (Intro)
+### 1. Hero Section (Intro - Section 3.1)
 | Filename | Type | Recommended Res | Usage |
 |----------|------|-----------------|-------|
-| `hero.mp4` | Video | 1920x1080 | The main background loop for the landing screen. |
-| `hero_poster.jpg` | Image | 1920x1080 | Fallback image displayed while the video loads or on mobile. |
+| `hero.mp4` | Video | 1920x1080 | **Priority Hero Background.** Cinematic, slow-motion Padel gameplay or futuristic abstract data loops. |
+| `hero_poster.jpg` | Image | 1920x1080 | Fallback image displayed while the video loads or on mobile. High contrast, dark-toned. |
 
 ### 2. Section Dividers (Parallax Backgrounds)
 | Filename | Recommended Res | Usage |
@@ -18,16 +18,14 @@ If a local file is found, it automatically overrides the default remote/cloud UR
 | `divider_1.jpg` | 4K / 3840x2160 | **"The Arena"** divider (Section 3.2, Matchmaker intro). |
 | `divider_2.jpg` | 4K / 3840x2160 | **"Break Limits"** divider (Section 3.5, Coaching intro). |
 | `divider_3.jpg` | 4K / 3840x2160 | **"Global Nexus"** divider (Section 3.8, Social intro). |
-| `divider_4.jpg` | 4K / 3840x2160 | **"The Code"** divider (Section 3.9, Principle intro). |
+| `divider_4.jpg" | 4K / 3840x2160 | **"The Code"** divider (Section 3.9, Principle intro). |
 
 ### 3. Coaching Mode
 | Filename | Recommended Res | Usage |
 |----------|-----------------|-------|
 | `coaching_bg.jpg` | 1920x1080 | Background image for the AI Coaching/Camera analysis interface. |
 
-### 4. Global Leaderboard Players (Section 3.4)
-Upload images matching the player ranking ID to override the default avatars.
-
+### 4. Global Leaderboard Players (Principle Section)
 | Filename | Player Rank | Usage |
 |----------|-------------|-------|
 | `player_01.jpg` | Rank 01 | Alejandro G. (Spain) |
@@ -42,4 +40,4 @@ Upload images matching the player ranking ID to override the default avatars.
 ## ⚠️ How to Use
 1. **Name your files** exactly as listed in the "Filename" column above.
 2. **Upload/Move** them into the `public/assets/` folder of your project.
-3. **Refresh** the application. The system (via `ImageDivider.tsx`, `CoachingMode.tsx`, and `PrincipleSection.tsx`) automatically detects local files and displays them. No code changes required.
+3. **Refresh** the application. The system (via `IntroSection.tsx`, `ImageDivider.tsx`, etc.) automatically detects local files and displays them with the pre-configured cinematic effects. No code changes required.
